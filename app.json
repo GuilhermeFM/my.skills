@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "ignite-expo-myskills",
+    "slug": "ignite-expo-myskills",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
