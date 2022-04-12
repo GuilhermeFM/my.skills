@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { FlatList, Keyboard, TouchableWithoutFeedback } from "react-native";
-import { isYesterday, isToday, format } from "date-fns";
+import { isYesterday, isToday, format, getUnixTime } from "date-fns";
+
+import { mySkillContract, addSkillToAddress } from "../../Contracts/MySkill";
 
 import Button from "../../components/Button";
 import Input from "../../components/Input";
@@ -29,23 +31,16 @@ export const Home: React.FC = () => {
   const [skill, setSkill] = useState<string | null>(null);
   const [skills, addSkill] = useState<ISkill[]>([]);
 
-  const handleAdd = useCallback(() => {
-    if (!skill) {
-      return;
-    }
+  const handleAdd = useCallback(async () => {
+    const tx = await addSkillToAddress(
+      "0x034dfDFE5A9259931ed68fA03C7448F74C105586",
+      skill,
+      getUnixTime(new Date())
+    );
 
-    const exists = skills.find((s) => s.title == skill);
+    console.log(tx);
 
-    if (exists) {
-      return;
-    }
-
-    addSkill((prev) => {
-      const nextId = prev.length > 0 ? prev[0].id + 1 : 1;
-      return [{ id: nextId, date: new Date(), title: skill }, ...prev];
-    });
-
-    setSkill(null);
+    const skills = setSkill(null);
   }, [skill, skills]);
 
   const handleRemove = useCallback(
@@ -75,6 +70,16 @@ export const Home: React.FC = () => {
     } else {
       setGreeting("Good night");
     }
+
+    const pastEvents = async () => {
+      const updatedSkillsEventFilter = mySkillContract.filters.UpdatedSkills();
+      const events = await mySkillContract.queryFilter(
+        updatedSkillsEventFilter
+      );
+      console.log(events);
+    };
+
+    pastEvents();
   }, []);
 
   return (
@@ -89,9 +94,7 @@ export const Home: React.FC = () => {
           placeholder="Add your skill here :)"
           placeholderTextColor="#555"
         />
-        <Button activeOpacity={0.7} onPress={handleAdd}>
-          Add
-        </Button>
+        <Button text="Add" activeOpacity={0.7} onPress={handleAdd} />
         <FlatListTitle>My Skills</FlatListTitle>
         <FlatList<ISkill>
           style={{ marginTop: 20 }}

@@ -9,13 +9,16 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@ethersproject/shims": "^5.6.0",
     "date-fns": "^2.28.0",
+    "ethers": "^5.6.2",
     "expo": "~44.0.2",
     "expo-splash-screen": "~0.14.1",
     "expo-status-bar": "~1.2.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-native": "0.64.3",
+    "react-native-get-random-values": "^1.7.2",
     "react-native-web": "0.17.1",
     "styled-components": "^5.3.3"
   },

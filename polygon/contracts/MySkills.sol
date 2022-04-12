@@ -8,21 +8,26 @@ pragma experimental ABIEncoderV2;
 */
 
 contract MySkills {
-    mapping(address => string[]) private skills;
-    mapping(address => mapping(string => bool)) private skillExists;
+    address private owner;
+    mapping(address => mapping(string => uint256)) private skills;
+    mapping(address => mapping(string => bool)) private exists;
 
-    event UpdatedSkills(address addr, string skill);
-
-    function addSkill(address addr, string memory skill) external {
-        require(!skillExists[addr][skill], "Skill already added");
-
-        skills[addr].push(skill);
-        skillExists[addr][skill] = true;
-
-        emit UpdatedSkills(addr, skill);
+    constructor() {
+        owner = msg.sender;
     }
 
-    function getSkills(address addr) external view returns (string[] memory) {
-        return skills[addr];
+    event UpdatedSkills(address addr, string skill, uint256 addIn);
+
+    function addSkill(
+        address addr,
+        string memory skill,
+        uint256 addIn
+    ) external {
+        require(!exists[addr][skill], "Skill already added");
+
+        skills[addr][skill] = addIn;
+        exists[addr][skill] = true;
+
+        emit UpdatedSkills(addr, skill, addIn);
     }
 }

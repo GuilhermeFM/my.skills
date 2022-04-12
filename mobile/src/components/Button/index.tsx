@@ -1,15 +1,16 @@
 import React from "react";
+import { TouchableOpacityProps } from "react-native";
 
 import { Button, ButtonText } from "./styles";
 
-interface ButtomProps {
-  children: React.ReactNode;
+interface ButtomProps extends TouchableOpacityProps {
+  text: string;
 }
 
-export default function ({ children, ...rest }: ButtomProps) {
+export default function ({ text, ...rest }: ButtomProps) {
   return (
     <Button {...rest}>
-      <ButtonText>{children}</ButtonText>
+      <ButtonText>{text}</ButtonText>
     </Button>
   );
 }
