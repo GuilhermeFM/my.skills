@@ -1,8 +1,18 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { FlatList, Keyboard, TouchableWithoutFeedback } from "react-native";
-import { isYesterday, isToday, format, getUnixTime } from "date-fns";
+import {
+  isYesterday,
+  isToday,
+  format,
+  getUnixTime,
+  fromUnixTime,
+} from "date-fns";
 
-import { mySkillContract, addSkillToAddress } from "../../Contracts/MySkill";
+import {
+  addSkillToAddress,
+  getAddedSkillsFromAddress,
+  Skill,
+} from "../../Contracts/MySkill";
 
 import Button from "../../components/Button";
 import Input from "../../components/Input";
@@ -20,16 +30,11 @@ import {
   FlatListItemDate,
 } from "./styles";
 
-interface ISkill {
-  id: number;
-  title: string;
-  date: Date;
-}
-
 export const Home: React.FC = () => {
-  const [greeting, setGreeting] = useState<string | null>(null);
+  const [skills, addSkill] = useState<Skill[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [skill, setSkill] = useState<string | null>(null);
-  const [skills, addSkill] = useState<ISkill[]>([]);
+  const [greeting, setGreeting] = useState<string | null>(null);
 
   const handleAdd = useCallback(async () => {
     const tx = await addSkillToAddress(
@@ -38,19 +43,12 @@ export const Home: React.FC = () => {
       getUnixTime(new Date())
     );
 
-    console.log(tx);
-
     const skills = setSkill(null);
   }, [skill, skills]);
 
-  const handleRemove = useCallback(
-    (id: number) => {
-      addSkill((prev) => prev.filter((item) => item.id != id));
-    },
-    [skills]
-  );
+  const formatDate = useCallback((timestamp: number) => {
+    const date = fromUnixTime(timestamp);
 
-  const formatDate = useCallback((date: Date) => {
     if (isYesterday(date)) {
       return "Added Yesterday";
     }
@@ -61,6 +59,8 @@ export const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    setLoading(true);
+
     const currentHour = new Date().getHours();
 
     if (currentHour < 12) {
@@ -71,15 +71,16 @@ export const Home: React.FC = () => {
       setGreeting("Good night");
     }
 
-    const pastEvents = async () => {
-      const updatedSkillsEventFilter = mySkillContract.filters.UpdatedSkills();
-      const events = await mySkillContract.queryFilter(
-        updatedSkillsEventFilter
+    const fillSkills = async () => {
+      const addedSkills = await getAddedSkillsFromAddress(
+        "0x034dfDFE5A9259931ed68fA03C7448F74C105586"
       );
-      console.log(events);
+
+      addSkill(addedSkills);
+      setLoading(false);
     };
 
-    pastEvents();
+    fillSkills();
   }, []);
 
   return (
@@ -96,10 +97,10 @@ export const Home: React.FC = () => {
         />
         <Button text="Add" activeOpacity={0.7} onPress={handleAdd} />
         <FlatListTitle>My Skills</FlatListTitle>
-        <FlatList<ISkill>
+        <FlatList<Skill>
           style={{ marginTop: 20 }}
           data={skills}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.timestamp.toString()}
           ListEmptyComponent={() => (
             <FlatListEmptyContainer>
               <FlatListEmptyIcon>¯\_(ツ)_/¯</FlatListEmptyIcon>
@@ -109,14 +110,9 @@ export const Home: React.FC = () => {
             </FlatListEmptyContainer>
           )}
           renderItem={({ item }) => (
-            <FlatListItem
-              activeOpacity={0.7}
-              onLongPress={() => {
-                handleRemove(item.id);
-              }}
-            >
-              <FlatListItemTitle>{item.title}</FlatListItemTitle>
-              <FlatListItemDate>{formatDate(item.date)}</FlatListItemDate>
+            <FlatListItem activeOpacity={0.7} onLongPress={() => {}}>
+              <FlatListItemTitle>{item.skill}</FlatListItemTitle>
+              <FlatListItemDate>{formatDate(item.timestamp)}</FlatListItemDate>
             </FlatListItem>
           )}
         />

@@ -1,38 +1,128 @@
 import "@nomiclabs/hardhat-ethers";
 
-import { ethers } from "hardhat";
 import { expect } from "chai";
+import { ethers } from "hardhat";
 import { getUnixTime } from "date-fns";
+import { Contract, ContractFactory } from "ethers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe("MySkill contract", () => {
-  it("Should add skill to owner", async () => {
-    const [owner] = await ethers.getSigners();
+  let owner: SignerWithAddress;
+  let mySkills: ContractFactory;
+  let mySkillsContract: Contract;
 
-    const mySkills = await ethers.getContractFactory("MySkills");
-    const mySkillsContract = await mySkills.deploy();
-
-    const date = new Date();
-    const unixTime = getUnixTime(date);
-
-    await mySkillsContract.addSkill(owner.address, "React", unixTime);
-    await mySkillsContract.addSkill(owner.address, "React Native", unixTime);
-    await mySkillsContract.addSkill(owner.address, "Javascript", unixTime);
-    await mySkillsContract.addSkill(owner.address, "Ubuntu 20.04", unixTime);
+  beforeEach(async () => {
+    [owner] = await ethers.getSigners();
+    mySkills = await ethers.getContractFactory("MySkills");
+    mySkillsContract = await mySkills.deploy();
   });
 
-  it("Should not add skill twice", async () => {
-    const [owner] = await ethers.getSigners();
+  describe("Skill insert", () => {
+    it("Should add skill to owner", async () => {
+      const date = new Date();
+      const unixTime = getUnixTime(date);
 
-    const mySkills = await ethers.getContractFactory("MySkills");
-    const mySkillsContract = await mySkills.deploy();
+      await mySkillsContract.addSkill("React", unixTime);
+      await mySkillsContract.addSkill("React Native", unixTime);
+      await mySkillsContract.addSkill("Javascript", unixTime);
+      await mySkillsContract.addSkill("Ubuntu 20.04", unixTime);
+    });
 
-    const date = new Date();
-    const unixTime = getUnixTime(date);
+    it("Should not add skill twice", async () => {
+      const date = new Date();
+      const unixTime = getUnixTime(date);
 
-    await mySkillsContract.addSkill(owner.address, "React", unixTime);
+      await mySkillsContract.addSkill("React", unixTime);
 
-    await expect(
-      mySkillsContract.addSkill(owner.address, "React", unixTime)
-    ).to.be.revertedWith("Skill already added");
+      await expect(
+        mySkillsContract.addSkill("React", unixTime)
+      ).to.be.revertedWith("Skill already added");
+    });
+
+    it("Should emit SkillAdded event", async () => {
+      const date = new Date();
+      const unixTime = getUnixTime(date);
+
+      await expect(mySkillsContract.addSkill("React", unixTime))
+        .to.emit(mySkillsContract, "SkillAdded")
+        .withArgs(owner.address, "React", unixTime);
+    });
+  });
+
+  describe("Skill update", () => {
+    it("Should update skill", async () => {
+      const date = new Date();
+      const unixTime = getUnixTime(date);
+
+      await mySkillsContract.addSkill("React", unixTime);
+      await mySkillsContract.updateSkill("React", "Javascript", unixTime);
+    });
+
+    it("Should not update a non existing skill", async () => {
+      const date = new Date();
+      const unixTime = getUnixTime(date);
+
+      await mySkillsContract.addSkill("React", unixTime);
+      await expect(
+        mySkillsContract.updateSkill("Non existing", "Javascript", unixTime)
+      ).to.be.revertedWith("Skill does not exists");
+    });
+
+    it("Should not duplicate skill", async () => {
+      const date = new Date();
+      const unixTime = getUnixTime(date);
+
+      await mySkillsContract.addSkill("React", unixTime);
+      await mySkillsContract.addSkill("Javascript", unixTime);
+
+      await expect(
+        mySkillsContract.updateSkill("React", "Javascript", unixTime)
+      ).to.be.revertedWith("Skill already exists.");
+    });
+
+    it("Should emit SkillUpdated event", async () => {
+      const date = new Date();
+      const unixTime = getUnixTime(date);
+
+      await mySkillsContract.addSkill("React", unixTime);
+
+      await expect(
+        mySkillsContract.updateSkill("React", "Javascript", unixTime)
+      )
+        .to.emit(mySkillsContract, "SkillUpdated")
+        .withArgs(owner.address, "React", "Javascript", unixTime);
+    });
+  });
+
+  describe("Skill delete", () => {
+    it("Should delete skill", async () => {
+      const date = new Date();
+      const unixTime = getUnixTime(date);
+
+      await mySkillsContract.addSkill("React", unixTime);
+      await mySkillsContract.deleteSkill("React", unixTime);
+    });
+
+    it("Should not delete a non existing skill", async () => {
+      const date = new Date();
+      const unixTime = getUnixTime(date);
+
+      await mySkillsContract.addSkill("React", unixTime);
+      await mySkillsContract.deleteSkill("React", unixTime);
+
+      await expect(
+        mySkillsContract.deleteSkill("React", unixTime)
+      ).to.be.revertedWith("Skill does not exists");
+    });
+
+    it("Should emit SkillDeleted event", async () => {
+      const date = new Date();
+      const unixTime = getUnixTime(date);
+
+      await mySkillsContract.addSkill("React", unixTime);
+      await expect(mySkillsContract.deleteSkill("React", unixTime))
+        .to.emit(mySkillsContract, "SkillDeleted")
+        .withArgs(owner.address, "React", unixTime);
+    });
   });
 });
