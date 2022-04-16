@@ -8,11 +8,16 @@ pragma experimental ABIEncoderV2;
 */
 
 contract MySkills {
+    struct Skill {
+        string name;
+        uint256 timestamp;
+    }
+
     address private owner;
 
-    mapping(address => mapping(string => string)) private skills;
-    mapping(address => mapping(string => uint256)) private skillsAddedIn;
-    mapping(address => mapping(string => bool)) private exists;
+    mapping(address => Skill[]) private skills;
+    mapping(address => mapping(string => bool)) skillExists;
+    mapping(address => mapping(string => uint256)) skillIndex;
 
     constructor() {
         owner = msg.sender;
@@ -24,57 +29,35 @@ contract MySkills {
         uint256 insertTimestamp
     );
 
-    event SkillUpdated(
-        address indexed addr,
-        string oldSkill,
-        string newSkill,
-        uint256 updateTimestamp
-    );
-
     event SkillDeleted(
         address indexed addr,
         string skill,
         uint256 deleteTimestamp
     );
 
-    function addSkill(string memory skill, uint256 insertTimestamp) external {
-        require(!exists[owner][skill], "Skill already added");
+    function addSkill(string memory name, uint256 timestamp) external {
+        require(!skillExists[owner][name], "Skill already added");
 
-        exists[owner][skill] = true;
-        skills[owner][skill] = skill;
-        skillsAddedIn[owner][skill] = insertTimestamp;
+        skills[owner].push(Skill(name, timestamp));
+        skillIndex[owner][name] = skills[owner].length - 1;
+        skillExists[owner][name] = true;
 
-        emit SkillAdded(owner, skill, insertTimestamp);
+        emit SkillAdded(owner, name, timestamp);
     }
 
-    function updateSkill(
-        string memory oldSkill,
-        string memory newSkill,
-        uint256 updateTimestamp
-    ) external {
-        require(exists[owner][oldSkill], "Skill does not exists.");
-        require(!exists[owner][newSkill], "Skill already exists.");
+    function deleteSkill(string memory name, uint256 timestamp) external {
+        require(skillExists[owner][name], "Skill does not exists.");
 
-        delete exists[owner][oldSkill];
-        delete skills[owner][oldSkill];
-        delete skillsAddedIn[owner][oldSkill];
+        uint256 index = skillIndex[owner][name];
 
-        exists[owner][newSkill] = true;
-        skills[owner][newSkill] = newSkill;
-        skillsAddedIn[owner][newSkill] = updateTimestamp;
+        delete skills[owner][index];
+        delete skillIndex[owner][name];
+        delete skillExists[owner][name];
 
-        emit SkillUpdated(owner, oldSkill, newSkill, updateTimestamp);
+        emit SkillDeleted(owner, name, timestamp);
     }
 
-    function deleteSkill(string memory skill, uint256 deleteTimestamp)
-        external
-    {
-        require(exists[owner][skill], "Skill does not exists.");
-
-        delete exists[owner][skill];
-        delete skills[owner][skill];
-        delete skillsAddedIn[owner][skill];
-
-        emit SkillDeleted(owner, skill, deleteTimestamp);
+    function getAll() public view returns (Skill[] memory) {
+        return skills[owner];
     }
 }

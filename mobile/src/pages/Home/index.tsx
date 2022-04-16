@@ -8,12 +8,7 @@ import {
   fromUnixTime,
 } from "date-fns";
 
-import {
-  addSkillToAddress,
-  getAddedSkillsFromAddress,
-  Skill,
-} from "../../Contracts/MySkill";
-
+import SkillContract, { Skill } from "../../Contracts/MySkill";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 
@@ -32,19 +27,35 @@ import {
 
 export const Home: React.FC = () => {
   const [skills, addSkill] = useState<Skill[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const [skill, setSkill] = useState<string | null>(null);
-  const [greeting, setGreeting] = useState<string | null>(null);
 
-  const handleAdd = useCallback(async () => {
-    const tx = await addSkillToAddress(
-      "0x034dfDFE5A9259931ed68fA03C7448F74C105586",
+  const handleAdd = useCallback(() => {
+    if (!skill) {
+      return;
+    }
+
+    const timestamp = getUnixTime(new Date());
+
+    SkillContract.addSkill({
       skill,
-      getUnixTime(new Date())
-    );
+      timestamp,
+    });
 
-    const skills = setSkill(null);
+    addSkill((prev) => [...prev, { name: skill, timestamp, pending: true }]);
+    setSkill(null);
   }, [skill, skills]);
+
+  const formatGreetings = useCallback(() => {
+    const currentHour = new Date().getHours();
+
+    if (currentHour < 12) {
+      return "Good morning";
+    } else if (currentHour >= 12 && currentHour < 18) {
+      return "Good afternoon";
+    } else {
+      return "Good night";
+    }
+  }, []);
 
   const formatDate = useCallback((timestamp: number) => {
     const date = fromUnixTime(timestamp);
@@ -59,35 +70,33 @@ export const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
-
-    const currentHour = new Date().getHours();
-
-    if (currentHour < 12) {
-      setGreeting("Good morning");
-    } else if (currentHour >= 12 && currentHour < 18) {
-      setGreeting("Good afternoon");
-    } else {
-      setGreeting("Good night");
-    }
-
-    const fillSkills = async () => {
-      const addedSkills = await getAddedSkillsFromAddress(
-        "0x034dfDFE5A9259931ed68fA03C7448F74C105586"
-      );
-
-      addSkill(addedSkills);
-      setLoading(false);
+    const fillSkillList = async () => {
+      const addedSkills = await SkillContract.getAllSkill();
+      addSkill((prev) => [...prev, ...addedSkills]);
     };
 
-    fillSkills();
+    fillSkillList();
+
+    SkillContract.onSkillAdded((_, skill, timestamp) => {
+      addSkill((prev) =>
+        prev.map((pSkill) =>
+          pSkill.name === skill && pSkill.timestamp === timestamp
+            ? { ...pSkill, pending: false }
+            : pSkill
+        )
+      );
+    });
+
+    return () => {
+      SkillContract.dettacheOnSkillAdded();
+    };
   }, []);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <Container>
         <Title>Welcome, Guilherme</Title>
-        <Greetings>{greeting}</Greetings>
+        <Greetings>{formatGreetings()}</Greetings>
         <Input
           value={skill}
           onChangeText={setSkill}
@@ -111,8 +120,10 @@ export const Home: React.FC = () => {
           )}
           renderItem={({ item }) => (
             <FlatListItem activeOpacity={0.7} onLongPress={() => {}}>
-              <FlatListItemTitle>{item.skill}</FlatListItemTitle>
-              <FlatListItemDate>{formatDate(item.timestamp)}</FlatListItemDate>
+              <FlatListItemTitle>{item.name}</FlatListItemTitle>
+              <FlatListItemDate>
+                {item.pending ? "Pending..." : formatDate(item.timestamp)}
+              </FlatListItemDate>
             </FlatListItem>
           )}
         />
