@@ -31,35 +31,6 @@ Esse projeto foi desenvolvido com as seguintes tecnologias:
 
 My.Skill é um app simples onde você pode criar um lista de skill e salvar em uma blockchain.
 
-## 🛠️ Como configurar
-
-### Criando a conta na Alchemy
-
-- Vá até a <a href="https://www.alchemy.com/">alchemy</a> e crie uma conta (grátis)
-- No dashboard adicione um novo app e escolha uma blockchain que deseja conectar. Recomendo a Polygon Mumbai.
-- Anote os link de wss e https.
-
-### Configurando o APP Mobile
-
-- Edite o arquivo src/Contracts/MySkill.ts e alteres as seguintes variáveis:
-
-```javascript
-this.webSocketProvider = new WebSocketProvider(
-  // url do provider Ex.: "wss://polygon-mumbai.g.alchemy.com/v2/sua-chave-do-alchemy-aqui"
-);
-
-// Deixe o endereço do contrato como está
-this.contractAddress = "0x4398486516c38330BEfD6FB1cC32BD1D7Da80c8D";
-
-// Cuidado para não subir essa informações para o repositório 
-this.walletPublicKey = "endereço-publico-da-sua-carteira";
-
-// Cuidado para não subir essa informações para o repositório
-this.walletPrivateKey = "chave-privada-da-sua-carteira";
-```
-
-- Feito isso basta executar o app com o comando `expo start`
-
 ## 🤔 O que ainda sera implementado neste APP ?
 
 - Configuração da carteira pelo APP;
