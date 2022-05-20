@@ -15,11 +15,6 @@ export default {
   networks: {
     hardhat: {},
 
-    ropsten: {
-      url: API_URL_ROPSTEN,
-      accounts: [`0x${PRIVATE_KEY}`],
-    },
-
     polygon: {
       url: API_URL_POLYGON,
       accounts: [`0x${PRIVATE_KEY}`],

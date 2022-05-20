@@ -36,28 +36,28 @@ contract MySkills {
     );
 
     function addSkill(string memory name, uint256 timestamp) external {
-        require(!skillExists[owner][name], "Skill already added");
+        require(!skillExists[msg.sender][name], "Skill already added");
 
-        skills[owner].push(Skill(name, timestamp));
-        skillIndex[owner][name] = skills[owner].length - 1;
-        skillExists[owner][name] = true;
+        skills[msg.sender].push(Skill(name, timestamp));
+        skillIndex[msg.sender][name] = skills[msg.sender].length - 1;
+        skillExists[msg.sender][name] = true;
 
-        emit SkillAdded(owner, name, timestamp);
+        emit SkillAdded(msg.sender, name, timestamp);
     }
 
     function deleteSkill(string memory name, uint256 timestamp) external {
-        require(skillExists[owner][name], "Skill does not exists.");
+        require(skillExists[msg.sender][name], "Skill does not exists.");
 
-        uint256 index = skillIndex[owner][name];
+        uint256 index = skillIndex[msg.sender][name];
 
-        delete skills[owner][index];
-        delete skillIndex[owner][name];
-        delete skillExists[owner][name];
+        delete skills[msg.sender][index];
+        delete skillIndex[msg.sender][name];
+        delete skillExists[msg.sender][name];
 
-        emit SkillDeleted(owner, name, timestamp);
+        emit SkillDeleted(msg.sender, name, timestamp);
     }
 
     function getAll() public view returns (Skill[] memory) {
-        return skills[owner];
+        return skills[msg.sender];
     }
 }
