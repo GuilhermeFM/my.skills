@@ -51,9 +51,8 @@ class MySkillContract {
     );
 
     this.contractAddress = "0x4398486516c38330BEfD6FB1cC32BD1D7Da80c8D";
-    this.walletPublicKey = "0x034dfDFE5A9259931ed68fA03C7448F74C105586";
-    this.walletPrivateKey =
-      "ce95c27538a119a4774825614088c67dd60816347f074cf63bf6dd8073c199d1";
+    this.walletPublicKey = "";
+    this.walletPrivateKey = "";
 
     this.contract = new Contract(
       this.contractAddress,
