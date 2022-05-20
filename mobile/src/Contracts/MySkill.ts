@@ -50,9 +50,10 @@ class MySkillContract {
       "wss://polygon-mumbai.g.alchemy.com/v2/0bu9Z86InQwXiTDHoEgY87jQYBdAchEW"
     );
 
-    this.contractAddress = "0x4398486516c38330BEfD6FB1cC32BD1D7Da80c8D";
-    this.walletPublicKey = "";
-    this.walletPrivateKey = "";
+    this.contractAddress = "0x5118E5DAA1c03CeF67B514Bcc7F44D6C498E7371";
+    this.walletPublicKey = "0x034dfDFE5A9259931ed68fA03C7448F74C105586";
+    this.walletPrivateKey =
+      "ce95c27538a119a4774825614088c67dd60816347f074cf63bf6dd8073c199d1";
 
     this.contract = new Contract(
       this.contractAddress,
